@@ -11,8 +11,8 @@ def reactor_ode(t, x, p, u):
         Current state vector [Height (h), Concentration (c), Temperature (T)]
     p : list or np.array
         Parameter vector [F0, T0, c0, r, k0, Er, U, rho, Cp, deltaH]
-    u : list or np.array -- As functions of (x, t)
-        Input vector [Fout, Tc]
+    u : function of (t, x)
+        Input vector [Fout, Tc] as function of time and state
 
     Returns:
     --------
@@ -31,11 +31,32 @@ def reactor_ode(t, x, p, u):
     Fout, Tc = u(x, t)
 
     # ODEs
-    dhdt = (F0 - Fout) / (np.pi * r**2)
+    dhdt = (F0 - Fout) / (np.pi * r**2) if h > 1.0e-3 else 0.0
     dcdt = (F0 * (c0 - c)) / (np.pi * r**2 * h) - k0 * c * np.exp(-Er/T)
     dTdt = (F0 * (T0 - T)) / (np.pi * r**2 * h) + (-deltaH / (rho * Cp)) * k0 * c * np.exp(-Er/T) + (2 * U * (Tc - T)) / (r * rho * Cp)
 
     return [dhdt, dcdt, dTdt]
+
+def reactor_measure(t, x, p, u):
+    """
+    Defines the Ordinary Differential Equations for a CSTR reactor, based on Rawlings et al. (2017)
+    Parameters:
+    -----------
+    t : float
+        Current time
+    x : list or np.array
+        Current state vector [Height (h), Concentration (c), Temperature (T)]
+    p : list or np.array
+        Parameter vector [F0, T0, c0, r, k0, Er, U, rho, Cp, deltaH]
+    u : list or np.array -- As functions of (x, t)
+        Input vector [Fout, Tc]
+
+    Returns:
+    --------
+    y : list
+        Measured outputs [Height (h), Concentration (c), Temperature (T)]
+    """
+    return x
 
 def reactor_default_parameters():
     """
